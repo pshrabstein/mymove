@@ -1,7 +1,15 @@
 {
-  "plugins": ["security"],
-  "extends": ["react-app", "plugin:security/recommended"],
+  "plugins": ["security", "react"],
+  "extends": ["react-app", "plugin:security/recommended", "plugin:react/recommended"],
   "rules": {
-    "no-debugger": "warn"
+    "no-debugger": "warn",
+    "react/prop-types": [2, { ignore: ['children'] }],
+    "react/jsx-no-target-blank": "warn",
+    "react/no-string-refs": "off",
+  },
+  "settings": {
+    "react": {
+      "version": "16.2",
+    },
   }
 }
