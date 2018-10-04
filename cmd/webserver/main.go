@@ -40,6 +40,10 @@ import (
 // max request body size is 20 mb
 const maxBodySize int64 = 200 * 1000 * 1000
 
+func die(w http.ResponseWriter, r *http.Request) {
+	panic("dieing")
+}
+
 func limitBodySizeMiddleware(inner http.Handler) http.Handler {
 	zap.L().Debug("limitBodySizeMiddleware installed")
 	mw := func(w http.ResponseWriter, r *http.Request) {
@@ -269,6 +273,7 @@ func main() {
 
 	// Stub health check
 	site.HandleFunc(pat.Get("/health"), func(w http.ResponseWriter, r *http.Request) {})
+	site.HandleFunc(pat.Get("/die"), die)
 
 	// Allow public content through without any auth or app checks
 	site.Handle(pat.Get("/static/*"), clientHandler)
