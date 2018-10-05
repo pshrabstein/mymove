@@ -41,7 +41,7 @@ import (
 const maxBodySize int64 = 200 * 1000 * 1000
 
 func die(w http.ResponseWriter, r *http.Request) {
-	panic("dieing")
+	os.Exit(1)
 }
 
 func limitBodySizeMiddleware(inner http.Handler) http.Handler {
