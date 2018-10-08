@@ -272,6 +272,9 @@ func main() {
 
 	// Stub health check
 	site.HandleFunc(pat.Get("/health"), func(w http.ResponseWriter, r *http.Request) {})
+	site.HandleFunc(pat.Get("/return-500"), func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+	})
 
 	// Allow public content through without any auth or app checks
 	site.Handle(pat.Get("/static/*"), clientHandler)
