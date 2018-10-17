@@ -46,8 +46,15 @@ func (suite *HandlerSuite) TestGetShipmentHandler() {
 	okResponse := response.(*shipmentop.GetShipmentOK)
 
 	// And: Payload is equivalent to original shipment
-	suite.Equal(strfmt.UUID(shipment.ID.String()), okResponse.Payload.ID)
-	suite.Equal(apimessages.AffiliationARMY, *okResponse.Payload.ServiceMember.Affiliation)
+	payload := okResponse.Payload
+	suite.Equal(strfmt.UUID(shipment.ID.String()), payload.ID)
+	suite.Equal(apimessages.AffiliationARMY, *payload.ServiceMember.Affiliation)
+
+	expectedOriginalDeliveryDate := time.Date(testdatagen.TestYear, time.October, 12, 0, 0, 0, 0, time.UTC)
+	suite.EqualValues(time.Time(*payload.OriginalDeliveryDate).In(time.UTC), expectedOriginalDeliveryDate, "OriginalDeliveryDate was not updated")
+
+	expectedOriginalPackDate := time.Date(2019, time.September, 30, 0, 0, 0, 0, time.UTC)
+	suite.EqualValues(time.Time(*payload.OriginalPackDate).In(time.UTC), expectedOriginalPackDate, "OriginalPackDate was not updated")
 }
 
 func (suite *HandlerSuite) TestPatchShipmentHandlerNetWeight() {

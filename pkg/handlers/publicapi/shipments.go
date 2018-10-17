@@ -35,6 +35,8 @@ func payloadForShipmentModel(s models.Shipment) *apimessages.Shipment {
 		Market:                              apimessages.ShipmentMarket(*s.Market),
 		BookDate:                            *handlers.FmtDatePtr(s.BookDate),
 		RequestedPickupDate:                 *handlers.FmtDatePtr(s.RequestedPickupDate),
+		OriginalDeliveryDate:                handlers.FmtDatePtr(s.OriginalDeliveryDate),
+		OriginalPackDate:                    handlers.FmtDatePtr(s.OriginalPackDate),
 		Move:                                payloadForMoveModel(&s.Move),
 		Status:                              apimessages.ShipmentStatus(s.Status),
 		EstimatedPackDays:                   handlers.FmtInt64(*s.EstimatedPackDays),

@@ -892,6 +892,18 @@ definitions:
         type: string
         format: date
         example: '2018-04-19'
+      original_delivery_date:
+        type: string
+        format: date
+        example: '2018-04-26'
+        readOnly: true
+        x-nullable: true
+      original_pack_date:
+        type: string
+        format: date
+        example: '2018-04-26'
+        readOnly: true
+        x-nullable: true
       move:
         $ref: '#/definitions/Move'
         x-nullable: true

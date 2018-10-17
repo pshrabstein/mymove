@@ -163,7 +163,7 @@ func CreateShipmentOfferData(db *pop.Connection, numTspUsers int, numShipments i
 	})
 
 	for i := 1; i <= numShipments; i++ {
-		now := time.Now()
+		now := DateInsideNonPeakRateCycle
 		nowPlusOne := now.Add(oneWeek)
 		nowPlusTwo := now.Add(oneWeek * 2)
 
@@ -192,6 +192,8 @@ func CreateShipmentOfferData(db *pop.Connection, numTspUsers int, numShipments i
 			moveStatus = models.MoveStatusAPPROVED
 		}
 
+		packDate := now.AddDate(0, 0, -2)
+		deliveryDate := now.AddDate(0, 0, 10)
 		shipmentAssertions := Assertions{
 			User: models.User{
 				LoginGovEmail: smEmail,
@@ -206,6 +208,8 @@ func CreateShipmentOfferData(db *pop.Connection, numTspUsers int, numShipments i
 			},
 			Shipment: models.Shipment{
 				RequestedPickupDate:     &now,
+				OriginalPackDate:        &packDate,
+				OriginalDeliveryDate:    &deliveryDate,
 				TrafficDistributionList: &tdl,
 				SourceGBLOC:             &sourceGBLOC,
 				DestinationGBLOC:        &destinationGBLOC,
