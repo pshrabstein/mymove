@@ -58,3 +58,10 @@ func (t TransportationServiceProvider) MarshalLogObject(encoder zapcore.ObjectEn
 	encoder.AddString("id", t.ID.String())
 	return nil
 }
+
+// FetchTsp fetches TSP information
+func FetchTsp(db *pop.Connection, tspID uuid.UUID) (*TransportationServiceProvider, error) {
+	var tsp TransportationServiceProvider
+	err := db.Q().Find(&tsp, tspID)
+	return &tsp, err
+}

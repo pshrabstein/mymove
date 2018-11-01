@@ -22,7 +22,7 @@ import (
 )
 
 func payloadForShipmentModel(s models.Shipment) *apimessages.Shipment {
-	shipmentpayload := &apimessages.Shipment{
+	shipmentPayload := &apimessages.Shipment{
 		ID:               *handlers.FmtUUID(s.ID),
 		Status:           apimessages.ShipmentStatus(s.Status),
 		SourceGbloc:      apimessages.GBLOC(*s.SourceGBLOC),
@@ -78,7 +78,7 @@ func payloadForShipmentModel(s models.Shipment) *apimessages.Shipment {
 		PmSurveyNotes:                       s.PmSurveyNotes,
 		PmSurveyMethod:                      s.PmSurveyMethod,
 	}
-	return shipmentpayload
+	return shipmentPayload
 }
 
 // IndexShipmentsHandler returns a list of shipments

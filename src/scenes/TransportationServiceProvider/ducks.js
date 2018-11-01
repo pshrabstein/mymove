@@ -1,4 +1,5 @@
 import {
+  LoadTsp,
   LoadShipment,
   PatchShipment,
   AcceptShipment,
@@ -15,6 +16,7 @@ import {
 import * as ReduxHelpers from 'shared/ReduxHelpers';
 
 // SINGLE RESOURCE ACTION TYPES
+const loadTspType = 'LOAD_TSP';
 const loadShipmentType = 'LOAD_SHIPMENT';
 const patchShipmentType = 'PATCH_SHIPMENT';
 const acceptShipmentType = 'ACCEPT_SHIPMENT';
@@ -32,6 +34,7 @@ const updateServiceAgentsType = 'UPDATE_SERVICE_AGENTS';
 const loadTspDependenciesType = 'LOAD_TSP_DEPENDENCIES';
 
 // SINGLE RESOURCE ACTION TYPES
+const LOAD_TSP = ReduxHelpers.generateAsyncActionTypes(loadTspType);
 const LOAD_SHIPMENT = ReduxHelpers.generateAsyncActionTypes(loadShipmentType);
 const PATCH_SHIPMENT = ReduxHelpers.generateAsyncActionTypes(patchShipmentType);
 const ACCEPT_SHIPMENT = ReduxHelpers.generateAsyncActionTypes(acceptShipmentType);
@@ -53,6 +56,8 @@ const UPDATE_SERVICE_AGENTS = ReduxHelpers.generateAsyncActionTypes(updateServic
 const LOAD_TSP_DEPENDENCIES = ReduxHelpers.generateAsyncActionTypes(loadTspDependenciesType);
 
 // SINGLE-RESOURCE ACTION CREATORS
+
+export const loadTsp = ReduxHelpers.generateAsyncActionCreator(loadTspType, LoadTsp);
 
 export const loadShipment = ReduxHelpers.generateAsyncActionCreator(loadShipmentType, LoadShipment);
 
@@ -100,7 +105,11 @@ export function loadShipmentDependencies(shipmentId) {
   return async function(dispatch, getState) {
     dispatch(actions.start());
     try {
-      await Promise.all([dispatch(loadShipment(shipmentId)), dispatch(indexServiceAgents(shipmentId))]);
+      await Promise.all([
+        dispatch(loadShipment(shipmentId)),
+        dispatch(loadShipment(shipmentId)),
+        dispatch(indexServiceAgents(shipmentId)),
+      ]);
       return dispatch(actions.success());
     } catch (ex) {
       dispatch(actions.error(ex));
@@ -113,6 +122,9 @@ export function loadShipmentDependencies(shipmentId) {
 
 // Reducer
 const initialState = {
+  tspIsLoading: false,
+  tspHasLoadSuccess: false,
+  tspHasLoadError: null,
   shipmentIsLoading: false,
   shipmentHasLoadSuccess: false,
   shipmentHasLoadError: null,
@@ -154,6 +166,26 @@ export function tspReducer(state = initialState, action) {
   switch (action.type) {
     // SINGLE-RESOURCE ACTION TYPES
 
+    // TSPS
+    case LOAD_TSP.start:
+      return Object.assign({}, state, {
+        tspIsLoading: true,
+        tspHasLoadSuccess: false,
+      });
+    case LOAD_TSP.success:
+      return Object.assign({}, state, {
+        tspIsLoading: false,
+        tspHasLoadSuccess: true,
+        tspHasLoadError: false,
+        tsp: action.payload,
+      });
+    case LOAD_TSP.failure:
+      return Object.assign({}, state, {
+        tspIsLoading: false,
+        tspHasLoadSuccess: false,
+        tspHasLoadError: null,
+        error: action.error.message,
+      });
     // SHIPMENTS
     case LOAD_SHIPMENT.start:
       return Object.assign({}, state, {

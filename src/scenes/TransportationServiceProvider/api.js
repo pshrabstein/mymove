@@ -136,3 +136,13 @@ export async function GetAllShipmentDocuments(shipmentId) {
   checkResponse(response, 'failed to load shipment documents due to server error');
   return response.body;
 }
+
+// TSP
+export async function LoadTsp(tspId) {
+  const client = await getPublicClient();
+  const response = await client.apis.tsps.getTsp({
+    tspId,
+  });
+  checkResponse(response, 'failed to load TSP due to server error');
+  return response.body;
+}
