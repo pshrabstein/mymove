@@ -3,9 +3,11 @@
   "extends": ["react-app", "plugin:security/recommended", "plugin:react/recommended"],
   "rules": {
     "no-debugger": "warn",
-    "react/prop-types": [2, { ignore: ['children'] }],
+    "react/prop-types": [1, { ignore: ['children'] }],
     "react/jsx-no-target-blank": "warn",
     "react/no-string-refs": "off",
+    "react/display-name": "off",
+    "react/no-unescaped-entities": "warn"
   },
   "settings": {
     "react": {
