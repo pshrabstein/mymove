@@ -62,9 +62,9 @@ type GeocodeResponseBody struct {
 	Response GeocodeResponse `json:"Response"`
 }
 
-// getAddressLatLong is expected to run in a goroutine to look up the LatLong of an address using the HERE
+// GetAddressLatLong is expected to run in a goroutine to look up the LatLong of an address using the HERE
 // geocoder endpoint. It returns the data via a channel so two requests can run in parallel
-func (p *herePlanner) getAddressLatLong(responses chan addressLatLong, address *models.Address) {
+func (p *herePlanner) GetAddressLatLong(responses chan addressLatLong, address *models.Address) {
 
 	var latLongResponse addressLatLong
 	latLongResponse.address = address
