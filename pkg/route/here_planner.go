@@ -25,7 +25,8 @@ type herePlanner struct {
 	geocodeEndPointWithKeys string
 }
 
-type addressLatLong struct {
+// AddressLatLong holds address and lat long location of an address
+type AddressLatLong struct {
 	err      error
 	address  *models.Address
 	location LatLong
@@ -64,9 +65,9 @@ type GeocodeResponseBody struct {
 
 // GetAddressLatLong is expected to run in a goroutine to look up the LatLong of an address using the HERE
 // geocoder endpoint. It returns the data via a channel so two requests can run in parallel
-func (p *herePlanner) GetAddressLatLong(responses chan addressLatLong, address *models.Address) {
+func (p *herePlanner) GetAddressLatLong(responses chan AddressLatLong, address *models.Address) {
 
-	var latLongResponse addressLatLong
+	var latLongResponse AddressLatLong
 	latLongResponse.address = address
 
 	// Look up address
@@ -171,11 +172,11 @@ func (p *herePlanner) TransitDistance(source *models.Address, destination *model
 
 	// Convert addresses to LatLong using geocode API. Do via goroutines and channel so we can do two
 	// requests in parallel
-	responses := make(chan addressLatLong)
+	responses := make(chan AddressLatLong)
 	var srcLatLong LatLong
 	var destLatLong LatLong
-	go p.getAddressLatLong(responses, source)
-	go p.getAddressLatLong(responses, destination)
+	go p.GetAddressLatLong(responses, source)
+	go p.GetAddressLatLong(responses, destination)
 	for count := 0; count < 2; count++ {
 		response := <-responses
 		if response.err != nil {

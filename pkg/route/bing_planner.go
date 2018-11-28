@@ -84,6 +84,10 @@ func (p *bingPlanner) TransitDistance(source *models.Address, destination *model
 	return p.wayPointsTransitDistance(urlencodeAddress(source), urlencodeAddress(destination))
 }
 
+func (p *bingPlanner) GetAddressLatLong(responses chan AddressLatLong, address *models.Address) {
+	p.GetAddressLatLong(responses, address)
+}
+
 // NewBingPlanner constructs and returns a Planner which uses the Bing Map API to plan routes.
 // endpoint should be the full URL to the Truck route REST endpoint,
 // e.g. https://dev.virtualearth.net/REST/v1/Routes/Truck and apiKey should be the Bing Maps API key associated with

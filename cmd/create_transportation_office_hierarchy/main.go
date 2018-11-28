@@ -3,28 +3,24 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"flag"
+	"fmt"
+	"github.com/gobuffalo/uuid"
+	"github.com/transcom/mymove/pkg/models"
+	"github.com/transcom/mymove/pkg/route"
+	"go.uber.org/zap"
 	"io"
 	"log"
 	"os"
 	"text/template"
-
-	"github.com/gobuffalo/uuid"
 )
 
 type jppso struct {
-	ID      uuid.UUID `json:"id"`
-	Gbloc   string    `json:"gbloc"`
-	Name    string    `json:"name"`
-	Address *address  `json:"address,omitempty"`
-}
-
-type address struct {
-	ID          uuid.UUID `json:"id"`
-	StreetAddr1 string    `json: "street_addr_1"`
-	StreetAddr2 string    `json: "street_addr_2"`
-	City        string    `json:"city"`
-	State       string    `json:"state"`
-	PostalCode  string    `json:"postal_code"`
+	ID      uuid.UUID
+	Gbloc   string
+	Name    string
+	Address *models.Address
+	LatLong *route.LatLong
 }
 
 func main() {
@@ -42,17 +38,22 @@ func main() {
 			`
 	// Create a new template and parse the sql into it.
 	t := template.Must(template.New("sql").Parse(sql))
-	// hereGeoEndpoint := flag.String("here_maps_geocode_endpoint", "", "URL for the HERE maps geocoder endpoint")
-	// hereRouteEndpoint := flag.String("here_maps_routing_endpoint", "", "URL for the HERE maps routing endpoint")
-	// hereAppID := flag.String("here_maps_app_id", "", "HERE maps App ID for this application")
-	// hereAppCode := flag.String("here_maps_app_code", "", "HERE maps App API code")
-	// flag.Parse()
-	// logger, err := zap.NewDevelopment()
-	// if err != nil {
-	// 	log.Fatalf("Failed to initialize Zap logging due to %v", err)
-	// }
+	hereGeoEndpoint := flag.String("here_maps_geocode_endpoint", "", "URL for the HERE maps geocoder endpoint")
+	hereRouteEndpoint := flag.String("here_maps_routing_endpoint", "", "URL for the HERE maps routing endpoint")
+	hereAppID := flag.String("here_maps_app_id", "", "HERE maps App ID for this application")
+	hereAppCode := flag.String("here_maps_app_code", "", "HERE maps App API code")
+	flag.Parse()
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatalf("Failed to initialize Zap logging due to %v", err)
+	}
 
-	//	planner := route.NewHEREPlanner(logger, hereGeoEndpoint, hereRouteEndpoint, hereAppID, hereAppCode)
+	fmt.Println(os.Getenv("HERE_MAPS_GEOCODE_ENDPOINT"))
+	fmt.Println("test")
+
+	os.Exit(hereGeoEndpoint)
+
+	planner := route.NewHEREPlanner(logger, hereGeoEndpoint, hereRouteEndpoint, hereAppID, hereAppCode)
 	csvFile, _ := os.Open("jppsos.csv")
 	reader := csv.NewReader(bufio.NewReader(csvFile))
 	var jppsos []jppso
@@ -72,22 +73,27 @@ func main() {
 		if err2 != nil {
 			log.Fatal(err2)
 		}
-		// response := make(chan addressLatLong)
-		// var srcLatLong LatLong
-		// go p.GetAddressLatLong(response, source)
-		jppsos = append(jppsos, jppso{
-			ID:    jppsoID,
-			Gbloc: line[0],
-			Name:  line[1],
-			Address: &address{
-				ID:          addressID,
-				StreetAddr1: line[2],
-				StreetAddr2: line[3],
-				City:        line[4],
-				State:       line[5],
-				PostalCode:  line[6],
-			},
-		})
+		// initialize address object
+		addressSource := models.Address{
+			ID:             addressID,
+			StreetAddress1: line[3],
+			City:           line[4],
+			State:          line[5],
+			PostalCode:     line[6],
+		}
+
+		response := make(chan route.AddressLatLong)
+		go planner.GetAddressLatLong(response, &addressSource)
+		info := <-response
+		fmt.Print(info)
+		thisJppso := jppso{
+			ID:      jppsoID,
+			Gbloc:   line[0],
+			Name:    line[1],
+			Address: &addressSource,
+			//LatLong: info.location,
+		}
+		jppsos = append(jppsos, thisJppso)
 	}
 	for _, jppso := range jppsos {
 		err := t.Execute(os.Stdout, jppso)

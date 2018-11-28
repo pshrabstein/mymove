@@ -18,6 +18,9 @@ func (tp testingPlanner) Zip5TransitDistance(source string, destination string) 
 	return zip5TransitDistanceHelper(tp, source, destination)
 }
 
+func (tp testingPlanner) GetAddressLatLong(responses chan AddressLatLong, address *models.Address) {
+}
+
 // NewTestingPlanner constructs a route.Planner to be used when testing other code
 func NewTestingPlanner(distance int) Planner {
 	return testingPlanner{

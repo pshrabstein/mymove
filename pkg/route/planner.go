@@ -53,4 +53,5 @@ type Planner interface {
 	TransitDistance(source *models.Address, destination *models.Address) (int, error)
 	LatLongTransitDistance(source LatLong, destination LatLong) (int, error)
 	Zip5TransitDistance(source string, destination string) (int, error)
+	GetAddressLatLong(responses chan AddressLatLong, address *models.Address)
 }
