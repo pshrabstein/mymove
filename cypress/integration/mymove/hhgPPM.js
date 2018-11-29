@@ -6,17 +6,46 @@ describe('service member adds a ppm to an hhg', function() {
     serviceMemberAddsPPMToHHG();
     serviceMemberCancelsAddPPMToHHG();
     serviceMemberContinuesPPMSetup();
-    serviceMemberFillsInDatesAndLocations();
+    serviceMemberFillsInDatesAndLocations({
+      plannedMoveDate: '5/20/2018',
+      pickupPostalCode: '90210',
+      destinationPostalCode: '50309',
+    });
     serviceMemberSelectsWeightRange();
     serviceMemberCanCustomizeWeight();
     serviceMemberCanReviewMoveSummary();
     serviceMemberCanSignAgreement();
     serviceMemberViewsUpdatedHomePage();
+    serviceMemberSignsOut();
+  });
+});
+
+describe('service member adds a ppm to a slightly different hhg', function() {
+  it('service member clicks on Add PPM Shipment', function() {
+    serviceMemberSignsIn('d33ab882-8e26-4ef3-b195-2b53c9809291');
+    serviceMemberAddsPPMToHHG();
+    serviceMemberCancelsAddPPMToHHG();
+    serviceMemberContinuesPPMSetup();
+    serviceMemberFillsInDatesAndLocations({
+      plannedMoveDate: '3/15/2018',
+      pickupPostalCode: '90210',
+      destinationPostalCode: '50309',
+    });
+    serviceMemberSelectsWeightRange();
+    serviceMemberCanCustomizeWeight();
+    serviceMemberCanReviewMoveSummary();
+    serviceMemberCanSignAgreement();
+    serviceMemberViewsUpdatedHomePage();
+    serviceMemberSignsOut();
   });
 });
 
 function serviceMemberSignsIn(uuid) {
   cy.signInAsUser(uuid);
+}
+
+function serviceMemberSignsOut() {
+  cy.logout();
 }
 
 function serviceMemberAddsPPMToHHG() {
@@ -54,22 +83,22 @@ function serviceMemberContinuesPPMSetup() {
     .click();
 }
 
-function serviceMemberFillsInDatesAndLocations() {
+function serviceMemberFillsInDatesAndLocations({ plannedMoveDate, pickupPostalCode, destinationPostalCode }) {
   cy.location().should(loc => {
     expect(loc.pathname).to.match(/^\/moves\/[^/]+\/hhg-ppm-start/);
   });
 
   cy
     .get('input[name="planned_move_date"]')
-    .should('have.value', '5/20/2018')
+    .should('have.value', plannedMoveDate)
     .clear()
     .first()
     .type('9/2/2018{enter}')
     .blur();
 
-  cy.get('input[name="pickup_postal_code"]').should('have.value', '90210');
+  cy.get('input[name="pickup_postal_code"]').should('have.value', pickupPostalCode);
 
-  cy.get('input[name="destination_postal_code"]').should('have.value', '50309');
+  cy.get('input[name="destination_postal_code"]').should('have.value', destinationPostalCode);
 
   cy.nextPage();
 }

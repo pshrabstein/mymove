@@ -1645,6 +1645,48 @@ func (e e2eBasicScenario) Run(db *pop.Connection, loader *uploader.Uploader, log
 	hhg29 := offer29.Shipment
 	hhg29.Move.Submit()
 	models.SaveMoveDependencies(db, &hhg29.Move)
+
+	/*
+	 * Service member with accepted shipment
+	 */
+	email = "hhgforppm@accept.ed"
+
+	offer30 := testdatagen.MakeShipmentOffer(db, testdatagen.Assertions{
+		User: models.User{
+			ID:            uuid.Must(uuid.FromString("d33ab882-8e26-4ef3-b195-2b53c9809291")),
+			LoginGovEmail: email,
+		},
+		ServiceMember: models.ServiceMember{
+			ID:            uuid.FromStringOrNil("6f9417d6-8c50-4764-85bf-6c91807da34f"),
+			FirstName:     models.StringPointer("HHG"),
+			LastName:      models.StringPointer("ReadyForApprove"),
+			Edipi:         models.StringPointer("4444567890"),
+			PersonalEmail: models.StringPointer(email),
+		},
+		Move: models.Move{
+			ID:               uuid.FromStringOrNil("b23c41a6-5306-4dc8-ba6d-bf2041c7f6ba"),
+			Locator:          "COMBO2",
+			SelectedMoveType: &selectedMoveTypeHHG,
+		},
+		TrafficDistributionList: models.TrafficDistributionList{
+			ID:                uuid.FromStringOrNil("b096129d-8092-47d0-a51a-ec5d9a730c3b"),
+			SourceRateArea:    "US62",
+			DestinationRegion: "11",
+			CodeOfService:     "D",
+		},
+		Shipment: models.Shipment{
+			Status:             models.ShipmentStatusACCEPTED,
+			HasDeliveryAddress: true,
+		},
+		ShipmentOffer: models.ShipmentOffer{
+			TransportationServiceProviderID: tspUser.TransportationServiceProviderID,
+			Accepted:                        models.BoolPointer(true),
+		},
+	})
+
+	hhg30 := offer30.Shipment
+	hhg30.Move.Submit()
+	models.SaveMoveDependencies(db, &hhg30.Move)
 }
 
 // MakeHhgWithPpm creates an HHG user who has added a PPM
