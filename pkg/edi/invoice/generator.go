@@ -370,7 +370,7 @@ func generateLinehaulSegments(lineItems []models.ShipmentLineItem) ([]edisegment
 			BilledRatedAsQualifier: "FR", // Flat rate
 		},
 		&edisegment.L1{
-			FreightRate:              0,    // TODO: placeholder for now
+			FreightRate:              0,    // value should be 0
 			RateValueQualifier:       "RC", // Rate
 			Charge:                   lineItem.AmountCents.ToDollarFloat(),
 			SpecialChargeDescription: "LHS", // Linehaul
@@ -397,8 +397,8 @@ func generateFullPackSegments(lineItems []models.ShipmentLineItem) ([]edisegment
 			WeightUnitCode:       "L", // Pounds
 		},
 		&edisegment.L1{
-			FreightRate:              65.77, // TODO: placeholder for now
-			RateValueQualifier:       "RC",  // Rate
+			FreightRate:              lineItem.AppliedRate.ToFlooredDollarFloat(),
+			RateValueQualifier:       "RC", // Rate
 			Charge:                   lineItem.AmountCents.ToDollarFloat(),
 			SpecialChargeDescription: "105A", // Full pack
 		},
@@ -424,8 +424,8 @@ func generateFullUnpackSegments(lineItems []models.ShipmentLineItem) ([]edisegme
 			WeightUnitCode:       "L", // Pounds
 		},
 		&edisegment.L1{
-			FreightRate:              65.77, // TODO: placeholder for now
-			RateValueQualifier:       "RC",  // Rate
+			FreightRate:              lineItem.AppliedRate.ToFlooredDollarFloat(),
+			RateValueQualifier:       "RC", // Rate
 			Charge:                   lineItem.AmountCents.ToDollarFloat(),
 			SpecialChargeDescription: "105C", // unpack TODO: verify that GEX can recognize 105C (unpack used to be included with pack above)
 		},
@@ -451,7 +451,7 @@ func generateOriginServiceSegments(lineItems []models.ShipmentLineItem) ([]edise
 			WeightUnitCode:       "L", // Pounds
 		},
 		&edisegment.L1{
-			FreightRate:              4.07, // TODO: placeholder for now
+			FreightRate:              lineItem.AppliedRate.ToFlooredDollarFloat(),
 			RateValueQualifier:       "RC", // Rate
 			Charge:                   lineItem.AmountCents.ToDollarFloat(),
 			SpecialChargeDescription: "135A", // Origin service charge
@@ -478,7 +478,7 @@ func generateDestinationServiceSegments(lineItems []models.ShipmentLineItem) ([]
 			WeightUnitCode:       "L", // Pounds
 		},
 		&edisegment.L1{
-			FreightRate:              4.07, // TODO: placeholder for now
+			FreightRate:              lineItem.AppliedRate.ToFlooredDollarFloat(),
 			RateValueQualifier:       "RC", // Rate
 			Charge:                   lineItem.AmountCents.ToDollarFloat(),
 			SpecialChargeDescription: "135B", // TODO: check if correct for Destination service charge

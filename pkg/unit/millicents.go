@@ -26,3 +26,12 @@ func (c Millicents) ToDollarString() string {
 	s := fmt.Sprintf("$%.2f", d)
 	return s
 }
+
+// ToFlooredDollarFloat returns a dollar representation of this value (rounded down if more than 2 decimals)
+func (c Millicents) ToFlooredDollarFloat() float64 {
+	// round down to nearest cent
+	d := math.Floor(float64(c) / 1000)
+	// convert cents to dollars
+	d = d / 100
+	return d
+}
