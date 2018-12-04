@@ -29,7 +29,7 @@ type herePlanner struct {
 type AddressLatLong struct {
 	err      error
 	address  *models.Address
-	location LatLong
+	Location LatLong
 }
 
 // HerePosition is a lat long position in the json response from HERE
@@ -104,8 +104,8 @@ func (p *herePlanner) GetAddressLatLong(responses chan AddressLatLong, address *
 			latLongResponse.err = errors.New("empty navigation postiong in geocoder response")
 		} else {
 			position := &response.Response.View[0].Result[0].Location.NavigationPosition[0]
-			latLongResponse.location.Latitude = position.Lat
-			latLongResponse.location.Longitude = position.Long
+			latLongResponse.Location.Latitude = position.Lat
+			latLongResponse.Location.Longitude = position.Long
 		}
 	}
 	responses <- latLongResponse
@@ -183,9 +183,9 @@ func (p *herePlanner) TransitDistance(source *models.Address, destination *model
 			return 0, response.err
 		}
 		if response.address == source {
-			srcLatLong = response.location
+			srcLatLong = response.Location
 		} else {
-			destLatLong = response.location
+			destLatLong = response.Location
 		}
 	}
 	return p.LatLongTransitDistance(srcLatLong, destLatLong)

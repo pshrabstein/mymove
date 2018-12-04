@@ -5,14 +5,15 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"github.com/gobuffalo/uuid"
-	"github.com/transcom/mymove/pkg/models"
-	"github.com/transcom/mymove/pkg/route"
-	"go.uber.org/zap"
 	"io"
 	"log"
 	"os"
 	"text/template"
+
+	"github.com/gobuffalo/uuid"
+	"github.com/transcom/mymove/pkg/models"
+	"github.com/transcom/mymove/pkg/route"
+	"go.uber.org/zap"
 )
 
 type jppso struct {
@@ -28,10 +29,10 @@ func main() {
 	-Add {{.Name}} transportation offices and addresses
 	INSERT INTO addresses
 		(id, street_address_1, street_address_2, city, state, postal_code, created_at, updated_at, country)
-		VALUES ('{{.Address.ID}}', '{{.Address.StreetAddr1}}', '{{.Address.StreetAddr2}}', '{{.Address.City}}', '{{.Address.State}}', '{{.Address.PostalCode}}', now(), now(), 'United States');
+		VALUES ('{{.Address.ID}}', '{{.Address.StreetAddress1}}', '{{.Address.StreetAddress2}}', '{{.Address.City}}', '{{.Address.State}}', '{{.Address.PostalCode}}', now(), now(), 'United States');
 	INSERT INTO transportation_offices
 		(id, name, gbloc, address_id, latitude, longitude, created_at, updated_at)
-		VALUES ('{{.ID}}', '{{.Name}}', '{{.Gbloc}}', '{{.Address.ID}}', 38.7037, -77.1481, now(), now());
+		VALUES ('{{.ID}}', '{{.Name}}', '{{.Gbloc}}', '{{.Address.ID}}', {{.LatLong.Latitude}},{{.LatLong.Longitude}}, now(), now());
 	--Update all PPPOs with relating gbloc
 	UPDATE transportation_offices
 		SET shipping_office_id = '{{.ID}}' WHERE gbloc='{{.Gbloc}}' AND id <> '{{.ID}}';
@@ -51,9 +52,7 @@ func main() {
 	fmt.Println(os.Getenv("HERE_MAPS_GEOCODE_ENDPOINT"))
 	fmt.Println("test")
 
-	os.Exit(hereGeoEndpoint)
-
-	planner := route.NewHEREPlanner(logger, hereGeoEndpoint, hereRouteEndpoint, hereAppID, hereAppCode)
+	planner := route.NewHEREPlanner(logger, *hereGeoEndpoint, *hereRouteEndpoint, *hereAppID, *hereAppCode)
 	csvFile, _ := os.Open("jppsos.csv")
 	reader := csv.NewReader(bufio.NewReader(csvFile))
 	var jppsos []jppso
@@ -76,7 +75,8 @@ func main() {
 		// initialize address object
 		addressSource := models.Address{
 			ID:             addressID,
-			StreetAddress1: line[3],
+			StreetAddress1: line[2],
+			StreetAddress2: &line[3],
 			City:           line[4],
 			State:          line[5],
 			PostalCode:     line[6],
@@ -91,7 +91,7 @@ func main() {
 			Gbloc:   line[0],
 			Name:    line[1],
 			Address: &addressSource,
-			//LatLong: info.location,
+			LatLong: &info.Location,
 		}
 		jppsos = append(jppsos, thisJppso)
 	}
