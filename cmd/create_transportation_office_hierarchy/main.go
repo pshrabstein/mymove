@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -39,21 +38,17 @@ func main() {
 			`
 	// Create a new template and parse the sql into it.
 	t := template.Must(template.New("sql").Parse(sql))
-	hereGeoEndpoint := flag.String("here_maps_geocode_endpoint", "", "URL for the HERE maps geocoder endpoint")
-	hereRouteEndpoint := flag.String("here_maps_routing_endpoint", "", "URL for the HERE maps routing endpoint")
-	hereAppID := flag.String("here_maps_app_id", "", "HERE maps App ID for this application")
-	hereAppCode := flag.String("here_maps_app_code", "", "HERE maps App API code")
-	flag.Parse()
+	geocodeEndpoint := os.Getenv("HERE_MAPS_GEOCODE_ENDPOINT")
+	routingEndpoint := os.Getenv("HERE_MAPS_ROUTING_ENDPOINT")
+	hereAppID := os.Getenv("HERE_MAPS_APP_ID")
+	hereAppCode := os.Getenv("HERE_MAPS_APP_CODE")
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		log.Fatalf("Failed to initialize Zap logging due to %v", err)
 	}
 
-	fmt.Println(os.Getenv("HERE_MAPS_GEOCODE_ENDPOINT"))
-	fmt.Println("test")
-
-	planner := route.NewHEREPlanner(logger, *hereGeoEndpoint, *hereRouteEndpoint, *hereAppID, *hereAppCode)
-	csvFile, _ := os.Open("jppsos.csv")
+	planner := route.NewHEREPlanner(logger, geocodeEndpoint, routingEndpoint, hereAppID, hereAppCode)
+	csvFile, _ := os.Open("./cmd/create_transportation_office_hierarchy/jppsos.csv")
 	reader := csv.NewReader(bufio.NewReader(csvFile))
 	var jppsos []jppso
 	for {
