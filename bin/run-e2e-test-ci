@@ -8,7 +8,7 @@ ENV=test LOGIN_GOV_CALLBACK_PORT=4000 bin/webserver --no-tls-port 4000 & p1=$!
 # shellcheck disable=SC2064
 trap "kill $p1" SIGINT
 
-npx cypress run & p2=$!
+npx cypress run --parallel & p2=$!
 
 wait $p2
 test_exit=$?
