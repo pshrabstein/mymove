@@ -87,5 +87,79 @@ func FetchBaseLinehaulRate(tx *pop.Connection, mileage int, weight unit.Pound, d
 			len(linehaulRates), mileage, weight, date)
 	}
 
+	//if no rate is found then query to determine which filter failed and throw an error based on it
+	if len(linehaulRates) == 0 {
+		err = validateLineHaulRate(tx, mileage, weight, date, moveType)
+	}
+
 	return linehaulRates[0], err
+}
+
+func validateLineHaulRate(tx *pop.Connection, mileage int, weight unit.Pound, date time.Time, moveType string) (err error) {
+	var linehaulRates []unit.Cents
+	//filter by distance
+	filterByDistance := `SELECT
+						rate_cents
+					FROM
+						tariff400ng_linehaul_rates
+					WHERE
+						(distance_miles_lower <= $1 AND $1 < distance_miles_upper);`
+	err = tx.RawQuery(filterByDistance, mileage).All(&linehaulRates)
+	if err != nil {
+		return fmt.Errorf("error fetching linehaul rate: %s", err)
+	}
+	if len(linehaulRates) < 1 {
+		//throw error stating rate can't be found because of distance
+		return fmt.Errorf("no rate found for the distance: %d", mileage)
+
+	}
+
+	//filter by weight
+	filterByWeight := `SELECT
+						rate_cents
+					FROM
+						tariff400ng_linehaul_rates
+					WHERE
+						(weight_lbs_lower <= $1 AND $1 < weight_lbs_upper)`
+	err = tx.RawQuery(filterByWeight, weight).All(&linehaulRates)
+	if err != nil {
+		return fmt.Errorf("error fetching linehaul rate: %s", err)
+	}
+	if len(linehaulRates) < 1 {
+		//throw error stating rate can't be found because of weight
+		return fmt.Errorf("no rate found for the weight class: %d", weight)
+	}
+
+	//filter by type
+	filterByType := `SELECT
+						rate_cents
+					FROM
+						tariff400ng_linehaul_rates
+					WHERE
+						type = $1`
+	err = tx.RawQuery(filterByType, moveType).All(&linehaulRates)
+	if err != nil {
+		return fmt.Errorf("error fetching linehaul rate: %s", err)
+	}
+	if len(linehaulRates) < 1 {
+		//throw error stating rate can't be found because of type
+		return fmt.Errorf("no rate found for the type: %s", moveType)
+	}
+
+	//filter by type
+	filterByDate := `SELECT
+						rate_cents
+					FROM
+						tariff400ng_linehaul_rates
+					WHERE
+						(effective_date_lower <= $1 AND $1 < effective_date_upper);`
+	err = tx.RawQuery(filterByDate, date).All(&linehaulRates)
+	if err != nil {
+		return fmt.Errorf("Error fetching linehaul rate: %s", err)
+	}
+	if len(linehaulRates) < 1 {
+		//throw error stating rate can't be found because of dates
+		return fmt.Errorf("no rate found for the date: %s", date)
+	}
+	return nil
 }
