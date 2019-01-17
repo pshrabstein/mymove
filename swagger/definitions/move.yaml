@@ -1,0 +1,74 @@
+SelectedMoveType:
+  type: string
+  title: Selected Move Type
+  enum:
+    - HHG
+    - PPM
+    - UB
+    - POV
+    - NTS
+    - HHG_PPM
+  x-nullable: true
+  x-display-value:
+    HHG: Household Goods Move
+    PPM: Personal Procured Move
+    UB: Unaccompanied Baggage
+    POV: Privately-Owned Vehicle
+    NTS: Non-Temporary Storage
+    HHG_PPM: Both HHG and PPM
+DutyStation:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: c56a4180-65aa-42ec-a945-5fd21dec0538
+    name:
+      type: string
+      format: string
+      example: Fort Bragg North Station
+    address:
+      $ref: ./address.yaml#/Address
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time
+  required:
+    - id
+    - name
+    - address
+    - created_at
+    - updated_at
+Move:
+  type: object
+  properties:
+    selected_move_type:
+      $ref: '#/SelectedMoveType'
+    orders_id:
+      type: string
+      format: uuid
+      example: c56a4180-65aa-42ec-a945-5fd21dec0538
+    has_dependents:
+      type: boolean
+      title: Are dependents included in your orders?
+      default: false
+    spouse_has_pro_gear:
+      type: boolean
+      title: Do you have a spouse who will need to move items related to their occupation (also known as spouse pro-gear)?
+      default: false
+    status:
+      $ref: ./move_status.yaml#/MoveStatus
+    locator:
+      type: string
+      example: '12432'
+    cancel_reason:
+      type: string
+      example: 'Change of orders'
+      x-nullable: true
+    new_duty_station:
+      $ref: '#/DutyStation'
+  required:
+    - orders_id
+    - locator

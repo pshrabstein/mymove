@@ -1,0 +1,42 @@
+Address:
+  type: object
+  properties:
+    street_address_1:
+      type: string
+      example: 123 Main Ave
+      title: Address Line 1
+    street_address_2:
+      type: string
+      example: Apartment 9000
+      x-nullable: true
+      title: Address Line 2
+    street_address_3:
+      type: string
+      example: Montmârtre
+      x-nullable: true
+      title: Address Line 3
+    city:
+      type: string
+      example: Anytown
+      title: City
+    state:
+      title: State
+      type: string
+      example: CA
+    postal_code:
+      type: string
+      description: zip code, international allowed
+      format: zip
+      title: ZIP/Postal Code
+      example: "'90210' or 'N15 3NL'"
+    country:
+      type: string
+      title: Country
+      x-nullable: true
+      example: 'USA'
+      default: USA
+  required:
+    - street_address_1
+    - state
+    - city
+    - postal_code

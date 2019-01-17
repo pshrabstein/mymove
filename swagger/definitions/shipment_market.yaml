@@ -1,0 +1,13 @@
+ShipmentMarket:
+  type: string
+  description: One of the possible 'Markets' for a shipment
+  example: dHHG
+  enum:
+    - dHHG
+    - iHHG
+    - iUB
+  x-display-value:
+    dHHG: Domestic HHG
+    iHHG: International HHG
+    iUB: International unaccompanied baggage
+  x-nullable: true

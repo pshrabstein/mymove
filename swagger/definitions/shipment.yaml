@@ -1,0 +1,312 @@
+ShipmentMarket:
+  type: string
+  description: One of the possible 'Markets' for a shipment
+  example: dHHG
+  enum:
+    - dHHG
+    - iHHG
+    - iUB
+  x-display-value:
+    dHHG: Domestic HHG
+    iHHG: International HHG
+    iUB: International unaccompanied baggage
+  x-nullable: true
+ShipmentStatus:
+  type: string
+  description: The stages in the lifecycle of a Shipment
+  example: IN_PROGRESS
+  enum:
+    - DRAFT
+    - SUBMITTED
+    - AWARDED
+    - ACCEPTED
+    - APPROVED
+    - IN_TRANSIT
+    - DELIVERED
+    - COMPLETED
+  x-display-value:
+    DRAFT: Draft
+    SUBMITTED: Submitted
+    AWARDED: Awarded
+    ACCEPTED: Accepted
+    APPROVED: Approved
+    IN_TRANSIT: In Transit
+    DELIVERED: Delivered
+    COMPLETED: Completed
+TrafficDistributionList:
+  type: object
+  properties:
+    source_rate_area:
+      type: string
+      example: US34
+    destination_region:
+      type: string
+      example: '5'
+    code_of_service:
+      type: string
+      example: D
+      enum:
+        - D
+        - '2'
+  required:
+    - source_rate_area
+    - destination_region
+    - code_of_service
+TrafficDistributionList:
+  type: object
+  properties:
+    source_rate_area:
+      type: string
+      example: US34
+    destination_region:
+      type: string
+      example: '5'
+    code_of_service:
+      type: string
+      example: D
+      enum:
+        - D
+        - '2'
+  required:
+    - source_rate_area
+    - destination_region
+    - code_of_service
+Shipment:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: c56a4180-65aa-42ec-a945-5fd21dec0538
+      readOnly: true
+    status:
+      $ref: '#/ShipmentStatus'
+      readOnly: true
+    source_gbloc:
+      $ref: ./gbloc.yaml#/GBLOC
+      readOnly: true
+    destination_gbloc:
+      $ref: ./gbloc.yaml#/GBLOC
+      readOnly: true
+    gbl_number:
+      type: string
+      example: 'KKFA9999999'
+      x-nullable: true
+      title: GBL Number
+    market:
+      $ref: '#/ShipmentMarket'
+      readOnly: true
+      x-nullable: true
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time
+    traffic_distribution_list:
+      $ref: '#/TrafficDistributionList'
+      readOnly: true
+    service_member:
+      $ref: ./service_member.yaml#/ServiceMember
+      readOnly: true
+    move:
+      $ref: ./move.yaml#/Move
+      x-nullable: true
+    book_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      readOnly: true
+      x-nullable: true
+    requested_pickup_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      x-nullable: true
+    original_delivery_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      readOnly: true
+      x-nullable: true
+    original_pack_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      readOnly: true
+      x-nullable: true
+    actual_pickup_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      readOnly: true
+      x-nullable: true
+    actual_pack_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      readOnly: true
+      x-nullable: true
+    actual_delivery_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      readOnly: true
+      x-nullable: true
+    estimated_pack_days:
+      description: Estimated days packing
+      type: integer
+      minimum: 0
+      example: 3
+      readOnly: true
+      x-nullable: true
+    estimated_transit_days:
+      description: Estimated days in transit
+      type: integer
+      minimum: 0
+      example: 30
+      readOnly: true
+      x-nullable: true
+    pickup_address:
+      $ref: ./address.yaml#/Address
+      x-nullable: true
+    has_secondary_pickup_address:
+      type: boolean
+      default: false
+      title: 'Do you have household goods at any other pickup location?'
+    secondary_pickup_address:
+      $ref: ./address.yaml#/Address
+      x-nullable: true
+    has_delivery_address:
+      type: boolean
+      default: false
+      title: 'Do you know the delivery address at destination yet?'
+    delivery_address:
+      $ref: ./address.yaml#/Address
+      x-nullable: true
+    has_partial_sit_delivery_address:
+      type: boolean
+      default: false
+      title: 'Will some of your items be stored in transit?'
+    partial_sit_delivery_address:
+      $ref: ./address.yaml#/Address
+      x-nullable: true
+    weight_estimate:
+      type: integer
+      description: Estimated weight of the shipment in lbs
+      minimum: 0
+      example: 10000
+      x-nullable: true
+      x-formatting: weight
+      title: Weight Estimate
+    progear_weight_estimate:
+      type: integer
+      description: Estimated weight of the progear in lbs
+      minimum: 0
+      example: 500
+      x-nullable: true
+      x-formatting: weight
+      title: Progear Weight Estimate
+    spouse_progear_weight_estimate:
+      type: integer
+      description: Estimated weight of the spouse progear in lbs
+      minimum: 0
+      example: 200
+      x-nullable: true
+      x-formatting: weight
+      title: Spouse Progear Weight Estimate
+    net_weight:
+      type: integer
+      description: Actual net weight of the shipment in lbs
+      minimum: 0
+      example: 10000
+      x-nullable: true
+      x-formatting: weight
+      title: Net
+    gross_weight:
+      type: integer
+      description: Gross weight of the shipment in lbs
+      minimum: 0
+      example: 10000
+      x-nullable: true
+      x-formatting: weight
+      title: Gross
+    tare_weight:
+      type: integer
+      description: Tare weight of the shipment in lbs
+      minimum: 0
+      example: 10000
+      x-nullable: true
+      x-formatting: weight
+      title: Tare
+    pm_survey_completed_at:
+      type: string
+      format: date-time
+      x-nullable: true
+    pm_survey_conducted_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      title: 'Conducted'
+      x-nullable: true
+    pm_survey_planned_pack_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      title: 'Planned pack date'
+      x-nullable: true
+    pm_survey_planned_pickup_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      title: 'Planned pickup date'
+      x-nullable: true
+    pm_survey_planned_delivery_date:
+      type: string
+      format: date
+      example: '2018-04-26'
+      title: 'Planned delivery date'
+      x-nullable: true
+    pm_survey_weight_estimate:
+      type: integer
+      minimum: 0
+      example: 10000
+      title: Weight
+      x-nullable: true
+      x-formatting: weight
+    pm_survey_progear_weight_estimate:
+      type: integer
+      minimum: 0
+      example: 10000
+      title: Pro-Gear weight
+      x-nullable: true
+      x-formatting: weight
+    pm_survey_spouse_progear_weight_estimate:
+      type: integer
+      minimum: 0
+      example: 10000
+      title: Spouse's pro-gear
+      x-nullable: true
+      x-formatting: weight
+    pm_survey_notes:
+      type: string
+      example: This document is good to go!
+      format: textarea
+      x-nullable: true
+      title: Notes about dates
+    pm_survey_method:
+      type: string
+      title: Survey method
+      enum:
+        - IN_PERSON
+        - PHONE
+        - VIDEO
+      x-display-value:
+        IN_PERSON: In person
+        PHONE: Phone
+        VIDEO: Video
+    transportation_service_provider_id:
+      type: string
+      format: uuid
+      example: c56a4180-65aa-42ec-a945-5fd21dec0538
+      readOnly: true

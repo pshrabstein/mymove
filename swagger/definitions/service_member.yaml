@@ -1,0 +1,142 @@
+Affiliation:
+  type: string
+  x-nullable: true
+  title: Branch of service
+  enum: &AFFILIATION
+    - ARMY
+    - NAVY
+    - MARINES
+    - AIR_FORCE
+    - COAST_GUARD
+  x-display-value:
+    ARMY: Army
+    NAVY: Navy
+    MARINES: Marines
+    AIR_FORCE: Air Force
+    COAST_GUARD: Coast Guard
+BackupContactPermission:
+  type: string
+  title: Backup Contact Permissions
+  example: VIEW
+  enum:
+    - NONE
+    - VIEW
+    - EDIT
+  x-display-value:
+    NONE: Contact Only
+    VIEW: View all move details
+    EDIT: View and edit all move details
+ServiceMemberBackupContact:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: c56a4180-65aa-42ec-a945-5fd21dec0538
+    name:
+      type: string
+      example: Susan Smith
+      x-nullable: true
+      title: Name
+    telephone:
+      type: string
+      format: telephone
+      pattern: '^[2-9]\d{2}-\d{3}-\d{4}$'
+      example: 212-555-5555
+      x-nullable: true
+      title: Phone
+    email:
+      type: string
+      format: x-email
+      pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+      example: john_bob@example.com
+      x-nullable: true
+      title: Email
+    permission:
+      $ref: '#/BackupContactPermission'
+    created_at:
+      type: string
+      format: date-time
+    updated_at:
+      type: string
+      format: date-time
+  required:
+    - id
+    - created_at
+    - updated_at
+    - name
+    - email
+    - permission
+ServiceMember:
+  type: object
+  properties:
+    first_name:
+      type: string
+      example: John
+      x-nullable: true
+      title: First Name
+    middle_name:
+      type: string
+      example: L.
+      x-nullable: true
+      title: Middle Name
+    last_name:
+      type: string
+      example: Donut
+      x-nullable: true
+      title: Last Name
+    edipi:
+      type: string
+      format: edipi
+      example: '5789345789'
+      pattern: '^[0-9]{10}$'
+      x-nullable: true
+      title: DoD ID number
+    affiliation:
+      $ref: '#/Affiliation'
+      title: Branch
+    rank:
+      $ref: ./service_member_rank.yaml#/ServiceMemberRank
+      title: Rank
+    suffix:
+      type: string
+      example: Jr.
+      x-nullable: true
+      title: Suffix
+    telephone:
+      type: string
+      format: telephone
+      pattern: '^[2-9]\d{2}-\d{3}-\d{4}$'
+      example: 212-555-5555
+      x-nullable: true
+      title: Best Contact Phone
+    secondary_telephone:
+      type: string
+      format: telephone
+      pattern: '^[2-9]\d{2}-\d{3}-\d{4}$'
+      example: 212-555-5555
+      x-nullable: true
+      title: Secondary Phone
+    personal_email:
+      type: string
+      format: x-email
+      pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+      example: john_bob@example.com
+      x-nullable: true
+      title: Personal Email Address
+    phone_is_preferred:
+      type: boolean
+      x-nullable: true
+      title: Telephone
+    text_message_is_preferred:
+      type: boolean
+      x-nullable: true
+      title: Text Message - Coming Soon!
+    email_is_preferred:
+      type: boolean
+      x-nullable: true
+      title: Email
+    backup_contacts:
+      type: array
+      items:
+        $ref: '#/ServiceMemberBackupContact'

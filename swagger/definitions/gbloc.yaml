@@ -1,0 +1,6 @@
+GBLOC:
+  type: string
+  description: Office Codes for Transcom offices originating GBLs
+  pattern: '^[A-Z]{4}$'
+  example: LHNQ
+  x-nullable: true
