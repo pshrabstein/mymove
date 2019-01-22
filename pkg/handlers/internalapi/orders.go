@@ -23,7 +23,7 @@ func payloadForOrdersModel(storer storage.FileStorer, order models.Order) (*inte
 
 	var moves internalmessages.IndexMovesPayload
 	for _, move := range order.Moves {
-		payload, err := payloadForMoveModel(storer, order, move)
+		payload, err := payloadForMoveModel(storer, move)
 		if err != nil {
 			return nil, err
 		}

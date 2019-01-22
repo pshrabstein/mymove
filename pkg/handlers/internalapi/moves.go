@@ -24,7 +24,7 @@ import (
 	"github.com/transcom/mymove/pkg/storage"
 )
 
-func payloadForMoveModel(storer storage.FileStorer, order models.Order, move models.Move) (*internalmessages.MovePayload, error) {
+func payloadForMoveModel(storer storage.FileStorer, move models.Move) (*internalmessages.MovePayload, error) {
 
 	var ppmPayloads internalmessages.IndexPersonallyProcuredMovePayload
 	for _, ppm := range move.PersonallyProcuredMoves {
@@ -56,7 +56,7 @@ func payloadForMoveModel(storer storage.FileStorer, order models.Order, move mod
 		ID:                      handlers.FmtUUID(move.ID),
 		UpdatedAt:               handlers.FmtDateTime(move.UpdatedAt),
 		PersonallyProcuredMoves: ppmPayloads,
-		OrdersID:                handlers.FmtUUID(order.ID),
+		OrdersID:                handlers.FmtUUID(move.OrdersID),
 		Status:                  internalmessages.MoveStatus(move.Status),
 		Shipments:               shipmentPayloads,
 	}
@@ -80,13 +80,8 @@ func (h ShowMoveHandler) Handle(params moveop.ShowMoveParams) middleware.Respond
 	if err != nil {
 		return handlers.ResponseForError(h.Logger(), err)
 	}
-	// Fetch orders for authorized user
-	orders, err := models.FetchOrderForUser(h.DB(), session, move.OrdersID)
-	if err != nil {
-		return handlers.ResponseForError(h.Logger(), err)
-	}
 
-	movePayload, err := payloadForMoveModel(h.FileStorer(), orders, *move)
+	movePayload, err := payloadForMoveModel(h.FileStorer(), *move)
 	if err != nil {
 		return handlers.ResponseForError(h.Logger(), err)
 	}
@@ -109,11 +104,6 @@ func (h PatchMoveHandler) Handle(params moveop.PatchMoveParams) middleware.Respo
 	if err != nil {
 		return handlers.ResponseForError(h.Logger(), err)
 	}
-	// Fetch orders for authorized user
-	orders, err := models.FetchOrderForUser(h.DB(), session, move.OrdersID)
-	if err != nil {
-		return handlers.ResponseForError(h.Logger(), err)
-	}
 	payload := params.PatchMovePayload
 	newSelectedMoveType := payload.SelectedMoveType
 
@@ -128,7 +118,7 @@ func (h PatchMoveHandler) Handle(params moveop.PatchMoveParams) middleware.Respo
 	if err != nil || verrs.HasAny() {
 		return handlers.ResponseForVErrors(h.Logger(), verrs, err)
 	}
-	movePayload, err := payloadForMoveModel(h.FileStorer(), orders, *move)
+	movePayload, err := payloadForMoveModel(h.FileStorer(), *move)
 	if err != nil {
 		return handlers.ResponseForError(h.Logger(), err)
 	}
@@ -185,7 +175,7 @@ func (h SubmitMoveHandler) Handle(params moveop.SubmitMoveForApprovalParams) mid
 		go awardqueue.NewAwardQueue(h.DB(), h.HoneyZapLogger()).Run(ctx)
 	}
 
-	movePayload, err := payloadForMoveModel(h.FileStorer(), move.Orders, *move)
+	movePayload, err := payloadForMoveModel(h.FileStorer(), *move)
 	if err != nil {
 		return handlers.ResponseForError(h.Logger(), err)
 	}
