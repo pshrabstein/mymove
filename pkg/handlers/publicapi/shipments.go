@@ -36,9 +36,12 @@ func payloadForShipmentModel(s models.Shipment) *apimessages.Shipment {
 		UpdatedAt:        strfmt.DateTime(s.UpdatedAt),
 
 		// associations
-		TrafficDistributionList: payloadForTrafficDistributionListModel(s.TrafficDistributionList),
-		ServiceMember:           payloadForServiceMemberModel(&s.ServiceMember),
-		Move:                    payloadForMoveModel(&s.Move),
+		TrafficDistributionListID: handlers.FmtUUIDPtr(s.TrafficDistributionListID),
+		TrafficDistributionList:   payloadForTrafficDistributionListModel(s.TrafficDistributionList),
+		ServiceMemberID:           strfmt.UUID(s.ServiceMemberID.String()),
+		ServiceMember:             payloadForServiceMemberModel(&s.ServiceMember),
+		MoveID:                    strfmt.UUID(s.MoveID.String()),
+		Move:                      payloadForMoveModel(&s.Move),
 
 		// dates
 		ActualPickupDate:     handlers.FmtDatePtr(s.ActualPickupDate),
@@ -627,7 +630,8 @@ func (h CreateGovBillOfLadingHandler) Handle(params shipmentop.CreateGovBillOfLa
 		return shipmentop.NewCreateGovBillOfLadingInternalServerError()
 	}
 
-	aFile, err := h.FileStorer().FileSystem().Create(gbl.GBLNumber1)
+	// Read the incoming data into a temporary afero.File for consumption
+	aFile, err := h.FileStorer().TempFileSystem().Create(gbl.GBLNumber1)
 	if err != nil {
 		h.Logger().Error("Error creating a new afero file for GBL form.", zap.Error(err))
 		return shipmentop.NewCreateGovBillOfLadingInternalServerError()
