@@ -133,6 +133,9 @@ func (h AssignUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session := loginUser(devlocalAuthHandler(h), user, w, r)
+	if session == nil {
+		return
+	}
 	http.Redirect(w, r, h.landingURL(session), http.StatusSeeOther)
 }
 
@@ -156,7 +159,10 @@ func (h CreateUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if user == nil {
 		return
 	}
-	loginUser(devlocalAuthHandler(h), user, w, r)
+	session := loginUser(devlocalAuthHandler(h), user, w, r)
+	if session == nil {
+		return
+	}
 	jsonOut, _ := json.Marshal(user)
 	fmt.Fprintf(w, string(jsonOut))
 }
@@ -182,6 +188,9 @@ func (h CreateAndLoginUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	session := loginUser(devlocalAuthHandler(h), user, w, r)
+	if session == nil {
+		return
+	}
 	http.Redirect(w, r, h.landingURL(session), http.StatusSeeOther)
 }
 
