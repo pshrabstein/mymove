@@ -266,7 +266,7 @@ func createSession(h devlocalAuthHandler, user *models.User, w http.ResponseWrit
 func verifySessionWithApp(session *auth.Session) error {
 
 	// TODO: Should this be a check that we do? Or will all office and tsp users also be service members?
-	// if (session.ServiceMemberID == uuid.UUID{}) && session.IsMyApp() {
+	// if (session.ServiceMemberID == uuid.UUID{}) && session.IsMilApp() {
 	// 	return errors.Errorf("Non-service member user %s authenticated at service member site", session.Email)
 	// }
 
