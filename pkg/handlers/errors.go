@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
+	"github.com/transcom/mymove/pkg/customerrors"
 	"github.com/transcom/mymove/pkg/models"
 	uploaderpkg "github.com/transcom/mymove/pkg/uploader"
 )
@@ -59,10 +60,16 @@ func ResponseForError(logger *zap.Logger, err error) middleware.Responder {
 	skipLogger := logger.WithOptions(zap.AddCallerSkip(1))
 
 	cause := errors.Cause(err)
-	switch cause.(type) {
+	switch e := cause.(type) {
 	case *route.UnsupportedPostalCode:
 		skipLogger.Debug("unsupported postal code", zap.Error(err))
 		return newErrResponse(http.StatusUnprocessableEntity, err)
+	case customerrors.HTTPError:
+		skipLogger.Info("Error during HERE operation", e.LogFields()...)
+		if e.IsClientError() {
+			return newErrResponse(http.StatusUnprocessableEntity, err)
+		}
+		return newErrResponse(http.StatusInternalServerError, err)
 	default:
 		return responseForBaseError(skipLogger, err)
 	}
