@@ -28,7 +28,7 @@ func (suite *HandlerSuite) TestGetShipmentLineItemTSPHandler() {
 	numShipments := 1
 	numShipmentOfferSplit := []int{1}
 	status := []models.ShipmentStatus{models.ShipmentStatusSUBMITTED}
-	tspUsers, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.DB(), numTspUsers, numShipments, numShipmentOfferSplit, status)
+	tspUsers, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.DB(), numTspUsers, numShipments, numShipmentOfferSplit, status, models.SelectedMoveTypeHHG)
 	suite.NoError(err)
 
 	tspUser := tspUsers[0]
@@ -170,7 +170,7 @@ func (suite *HandlerSuite) TestUpdateShipmentLineItemTSPHandler() {
 	numShipments := 1
 	numShipmentOfferSplit := []int{1}
 	status := []models.ShipmentStatus{models.ShipmentStatusSUBMITTED}
-	tspUsers, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.DB(), numTspUsers, numShipments, numShipmentOfferSplit, status)
+	tspUsers, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.DB(), numTspUsers, numShipments, numShipmentOfferSplit, status, models.SelectedMoveTypeHHG)
 	suite.NoError(err)
 	tspUser := tspUsers[0]
 	shipment := shipments[0]
@@ -328,7 +328,7 @@ func (suite *HandlerSuite) TestDeleteShipmentLineItemTSPHandler() {
 	numShipments := 1
 	numShipmentOfferSplit := []int{1}
 	status := []models.ShipmentStatus{models.ShipmentStatusSUBMITTED}
-	tspUsers, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.DB(), numTspUsers, numShipments, numShipmentOfferSplit, status)
+	tspUsers, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.DB(), numTspUsers, numShipments, numShipmentOfferSplit, status, models.SelectedMoveTypeHHG)
 	suite.NoError(err)
 
 	tspUser := tspUsers[0]
@@ -512,7 +512,7 @@ func (suite *HandlerSuite) TestApproveShipmentLineItemHandlerShipmentDelivered()
 	numShipments := 1
 	numShipmentOfferSplit := []int{1}
 	status := []models.ShipmentStatus{models.ShipmentStatusDELIVERED}
-	_, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.DB(), numTspUsers, numShipments, numShipmentOfferSplit, status)
+	_, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.DB(), numTspUsers, numShipments, numShipmentOfferSplit, status, models.SelectedMoveTypeHHG)
 	suite.NoError(err)
 
 	rateCents := unit.Cents(1000)
@@ -624,7 +624,7 @@ func (suite *HandlerSuite) TestApproveShipmentLineItemTSPUser() {
 	numShipments := 1
 	numShipmentOfferSplit := []int{1}
 	status := []models.ShipmentStatus{models.ShipmentStatusSUBMITTED}
-	tspUsers, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.DB(), numTspUsers, numShipments, numShipmentOfferSplit, status)
+	tspUsers, shipments, _, err := testdatagen.CreateShipmentOfferData(suite.DB(), numTspUsers, numShipments, numShipmentOfferSplit, status, models.SelectedMoveTypeHHG)
 	suite.NoError(err)
 
 	tspUser := tspUsers[0]
