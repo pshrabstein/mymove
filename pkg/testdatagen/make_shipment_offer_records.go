@@ -11,7 +11,6 @@ import (
 	"github.com/transcom/mymove/pkg/dates"
 	"github.com/transcom/mymove/pkg/gen/internalmessages"
 	"github.com/transcom/mymove/pkg/models"
-	"github.com/transcom/mymove/pkg/route"
 	"github.com/transcom/mymove/pkg/unit"
 )
 
@@ -67,7 +66,7 @@ func MakeDefaultShipmentOffer(db *pop.Connection) models.ShipmentOffer {
 // CreateShipmentOfferData creates a list of TSP Users, Shipments, and Shipment Offers
 // Must pass in the number of tsp users to create and number of shipments.
 // The split of shipment offers should be the length of TSP users and the sum should equal the number of shipments
-func CreateShipmentOfferData(db *pop.Connection, numTspUsers int, numShipments int, numShipmentOfferSplit []int, statuses []models.ShipmentStatus) ([]models.TspUser, []models.Shipment, []models.ShipmentOffer, error) {
+func CreateShipmentOfferData(db *pop.Connection, numTspUsers int, numShipments int, numShipmentOfferSplit []int, statuses []models.ShipmentStatus, moveType models.SelectedMoveType) ([]models.TspUser, []models.Shipment, []models.ShipmentOffer, error) {
 	var tspUserList []models.TspUser
 	var shipmentList []models.Shipment
 	var shipmentOfferList []models.ShipmentOffer
@@ -114,7 +113,6 @@ func CreateShipmentOfferData(db *pop.Connection, numTspUsers int, numShipments i
 	market := "dHHG"
 	sourceGBLOC := "KKFA"
 	destinationGBLOC := "HAFC"
-	selectedMoveType := models.SelectedMoveTypeHHG
 	if len(statuses) == 0 {
 		// Statuses for shipments attached to a shipment offer should not be DRAFT or SUBMITTED
 		// because this should be after the award queue has run and SUBMITTED shipments have been awarded
@@ -190,7 +188,7 @@ func CreateShipmentOfferData(db *pop.Connection, numTspUsers int, numShipments i
 				SpouseHasProGear: true,
 			},
 			Move: models.Move{
-				SelectedMoveType: &selectedMoveType,
+				SelectedMoveType: &moveType,
 				Status:           moveStatus,
 			},
 			Shipment: models.Shipment{
@@ -230,11 +228,15 @@ func CreateShipmentOfferData(db *pop.Connection, numTspUsers int, numShipments i
 
 			tariffDataShipment = &shipment
 
-			distanceCalc, _ := models.NewDistanceCalculation(
-				route.NewTestingPlanner(1044),
-				*shipment.PickupAddress,
-				shipment.Move.Orders.NewDutyStation.Address)
-			mustSave(db, &distanceCalc)
+			distanceCalc := MakeDistanceCalculation(db, Assertions{
+				DistanceCalculation: models.DistanceCalculation{
+					DistanceMiles:        1044,
+					OriginAddress:        *shipment.PickupAddress,
+					OriginAddressID:      shipment.PickupAddress.ID,
+					DestinationAddress:   shipment.Move.Orders.NewDutyStation.Address,
+					DestinationAddressID: shipment.Move.Orders.NewDutyStation.Address.ID,
+				},
+			})
 
 			shipment.ShippingDistance = distanceCalc
 			shipment.ShippingDistanceID = &distanceCalc.ID
