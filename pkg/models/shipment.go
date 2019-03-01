@@ -932,7 +932,6 @@ func AcceptShipmentForTSP(db *pop.Connection, tspID uuid.UUID, shipmentID uuid.U
 	if err != nil {
 		return shipment, shipmentOffer, nil, err
 	}
-
 	return saveShipmentAndOffer(db, shipment, shipmentOffer)
 }
 
@@ -992,11 +991,12 @@ func SaveShipmentAndAddresses(db *pop.Connection, shipment *Shipment) (*validate
 	return responseVErrors, responseError
 }
 
-// SaveShipmentAndPricingInfo saves a shipment and a slice of line items in a single transaction.
-func (s *Shipment) SaveShipmentAndPricingInfo(db *pop.Connection, baselineLineItems []ShipmentLineItem, generalLineItems []ShipmentLineItem, distanceCalculation DistanceCalculation) (*validate.Errors, error) {
+// GenerateShipmentDistance calculates shipping distance for a shipment and updates shipment object with the calculated values and stores it in the db
+func (s *Shipment) GenerateShipmentDistance(db *pop.Connection, distanceCalculation DistanceCalculation) (*validate.Errors, error) {
 	responseVErrors := validate.NewErrors()
 	var responseError error
 
+	// save distance calculation and update shipment in a single transaction
 	db.Transaction(func(tx *pop.Connection) error {
 		transactionError := errors.New("rollback")
 
@@ -1015,8 +1015,22 @@ func (s *Shipment) SaveShipmentAndPricingInfo(db *pop.Connection, baselineLineIt
 			responseError = errors.Wrap(err, "Error saving shipment")
 			return transactionError
 		}
+
+		return nil
+	})
+	return responseVErrors, responseError
+}
+
+// SaveShipmentAndPricingInfo saves a shipment and a slice of line items in a single transaction.
+func (s *Shipment) SaveShipmentAndPricingInfo(db *pop.Connection, baselineLineItems []ShipmentLineItem, generalLineItems []ShipmentLineItem, distanceCalculation DistanceCalculation) (*validate.Errors, error) {
+	responseVErrors := validate.NewErrors()
+	var responseError error
+
+	db.Transaction(func(tx *pop.Connection) error {
+		transactionError := errors.New("rollback")
+
 		for _, lineItem := range baselineLineItems {
-			verrs, err = s.createUniqueShipmentLineItem(tx, lineItem)
+			verrs, err := s.createUniqueShipmentLineItem(tx, lineItem)
 			if err != nil || verrs.HasAny() {
 				responseVErrors.Append(verrs)
 				responseError = errors.Wrapf(err, "Error saving shipment unique line item for shipment %s and item %s",
@@ -1025,7 +1039,7 @@ func (s *Shipment) SaveShipmentAndPricingInfo(db *pop.Connection, baselineLineIt
 			}
 		}
 		for _, lineItem := range generalLineItems {
-			verrs, err = tx.ValidateAndSave(&lineItem)
+			verrs, err := tx.ValidateAndSave(&lineItem)
 			if err != nil || verrs.HasAny() {
 				responseVErrors.Append(verrs)
 				responseError = errors.Wrapf(err, "Error saving shipment general line item for shipment %s and item %s",

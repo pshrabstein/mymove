@@ -265,6 +265,31 @@ func (h AcceptShipmentHandler) Handle(params shipmentop.AcceptShipmentParams) mi
 		}
 	}
 
+	//calculate the distance at time of acceptance so we can lock in the invoice amount for linehaul
+	origin := shipment.PickupAddress
+	if origin == nil || origin.ID == uuid.Nil {
+		h.Logger().Error("PickupAddress not provided")
+		return handlers.ResponseForVErrors(h.Logger(), verrs, err)
+	}
+
+	//if destination address i available use that, otherwise default ot using duty station address
+	destination := shipment.Move.Orders.NewDutyStation.Address
+	if shipment.DeliveryAddress != nil {
+		destination = *shipment.DeliveryAddress
+	}
+	if destination.ID == uuid.Nil {
+		h.Logger().Error("New duty station address not provided")
+		return handlers.ResponseForVErrors(h.Logger(), verrs, err)
+	}
+
+	distanceCalculation, err := models.NewDistanceCalculation(h.Planner(), *origin, destination)
+
+	if err != nil {
+		h.Logger().Error("Error creating DistanceCalculation model")
+		return handlers.ResponseForVErrors(h.Logger(), verrs, err)
+	}
+	shipment.GenerateShipmentDistance(h.DB(), distanceCalculation)
+
 	sp := payloadForShipmentModel(*shipment)
 	return shipmentop.NewAcceptShipmentOK().WithPayload(sp)
 }
