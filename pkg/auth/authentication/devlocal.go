@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/gorilla/csrf"
+
 	"github.com/transcom/mymove/pkg/auth"
 	"github.com/transcom/mymove/pkg/models"
 )
@@ -46,7 +47,9 @@ func (h UserListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := h.db.All(&users)
 	if err != nil {
 		h.logger.Error("Could not load list of users", zap.Error(err))
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		http.Error(w,
+			fmt.Sprintf("%s - Could not load list of users, try migrating the DB", http.StatusText(500)),
+			http.StatusInternalServerError)
 		return
 	}
 
@@ -70,7 +73,7 @@ func (h UserListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				<p id="{{.ID}}">
 					<input type="hidden" name="gorilla.csrf.Token" value="` + csrf.Token(r) + `">
 					{{.Email}}
-					({{if .TspUserID}}tsp{{else if .OfficeUserID}}office{{else}}milmove{{end}})
+					({{if .DpsUserID}}dps{{else if .TspUserID}}tsp{{else if .OfficeUserID}}office{{else}}milmove{{end}})
 					<button name="id" value="{{.ID}}" data-hook="existing-user-login">Login</button>
 				</p>
 			</form>
@@ -249,6 +252,10 @@ func createSession(h devlocalAuthHandler, user *models.User, w http.ResponseWrit
 
 	if userIdentity.TspUserID != nil {
 		session.TspUserID = *(userIdentity.TspUserID)
+	}
+
+	if userIdentity.DpsUserID != nil {
+		session.DpsUserID = *(userIdentity.DpsUserID)
 	}
 
 	session.FirstName = userIdentity.FirstName()
