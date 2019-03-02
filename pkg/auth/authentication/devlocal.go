@@ -292,7 +292,7 @@ func verifySessionWithApp(session *auth.Session) error {
 func loginUser(h devlocalAuthHandler, user *models.User, w http.ResponseWriter, r *http.Request) *auth.Session {
 	session, err := createSession(devlocalAuthHandler(h), user, w, r)
 	if err != nil {
-		h.logger.Error("Could not creat session", zap.Error(err))
+		h.logger.Error("Could not create session", zap.Error(err))
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return nil
 	}
