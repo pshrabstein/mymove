@@ -19,6 +19,15 @@ import (
 	"github.com/transcom/mymove/pkg/testingsuite"
 )
 
+const (
+	// TspTestHost
+	TspTestHost string = "tsp.example.com"
+	// OfficeTestHost
+	OfficeTestHost string = "office.example.com"
+	// MilTestHost
+	MilTestHost string = "mil.example.com"
+)
+
 type AuthSuite struct {
 	testingsuite.PopTestSuite
 	logger *zap.Logger
@@ -61,12 +70,12 @@ func (suite *AuthSuite) TestAuthorizationLogoutHandler() {
 	callbackPort := 1234
 	responsePattern := regexp.MustCompile(`href="(.+)"`)
 
-	req := httptest.NewRequest("GET", fmt.Sprintf("http://%s/auth/logout", auth.OfficeTestHost), nil)
+	req := httptest.NewRequest("GET", fmt.Sprintf("http://%s/auth/logout", OfficeTestHost), nil)
 	session := auth.Session{
 		ApplicationName: auth.OfficeApp,
 		UserID:          fakeUUID,
 		IDToken:         fakeToken,
-		Hostname:        auth.OfficeTestHost,
+		Hostname:        OfficeTestHost,
 	}
 	ctx := auth.SetSessionInRequestContext(req, &session)
 	req = req.WithContext(ctx)
@@ -90,7 +99,7 @@ func (suite *AuthSuite) TestAuthorizationLogoutHandler() {
 	postRedirectURI, err := url.Parse(params["post_logout_redirect_uri"][0])
 
 	suite.Nil(err)
-	suite.Equal(auth.OfficeTestHost, postRedirectURI.Hostname())
+	suite.Equal(OfficeTestHost, postRedirectURI.Hostname())
 	suite.Equal(strconv.Itoa(callbackPort), postRedirectURI.Port())
 	token := params["id_token_hint"][0]
 	suite.Equal(fakeToken, token, "handler id_token")
