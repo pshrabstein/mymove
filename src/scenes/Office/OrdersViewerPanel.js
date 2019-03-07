@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { get } from 'lodash';
 import { reduxForm, getFormValues, FormSection, Field } from 'redux-form';
 
+import { selectMove } from 'shared/Entities/modules/moves';
 import { updateServiceMember } from 'shared/Entities/modules/serviceMembers';
 import { selectOrdersForMove, updateOrders } from 'shared/Entities/modules/orders';
 import { selectServiceMemberForOrders } from 'shared/Entities/modules/serviceMembers';
@@ -117,7 +118,8 @@ let OrdersViewerPanel = editablePanelify(OrdersViewerDisplay, OrdersViewerEdit);
 OrdersViewerPanel = reduxForm({ form: formName })(OrdersViewerPanel);
 
 function mapStateToProps(state, ownProps) {
-  const orders = selectOrdersForMove(state, ownProps.moveId);
+  const { moveId } = ownProps;
+  const orders = selectOrdersForMove(state, moveId);
   const serviceMember = selectServiceMemberForOrders(state, orders.id);
 
   return {
@@ -130,12 +132,11 @@ function mapStateToProps(state, ownProps) {
     ordersSchema: get(state, 'swaggerInternal.spec.definitions.Orders', {}),
 
     hasError: false,
-    errorMessage: state.office.error,
     isUpdating: false,
 
     orders,
     serviceMember,
-    move: get(state, 'office.officeMove', {}),
+    move: selectMove(state, moveId),
 
     // editablePanelify
     getUpdateArgs: function() {
