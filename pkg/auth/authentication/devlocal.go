@@ -12,8 +12,6 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
-	"github.com/gorilla/csrf"
-
 	"github.com/transcom/mymove/pkg/auth"
 	"github.com/transcom/mymove/pkg/models"
 )
@@ -41,10 +39,7 @@ func (h UserListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, h.landingURL(session), http.StatusTemporaryRedirect)
 		return
 	}
-
-	// get list of users in system
-	var users []models.User
-	err := h.db.All(&users)
+	identities, err := models.FetchAllUserIdentities(h.db)
 	if err != nil {
 		h.logger.Error("Could not load list of users", zap.Error(err))
 		http.Error(w,
@@ -53,28 +48,25 @@ func (h UserListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// load user identities
-	var identities []*models.UserIdentity
-	for _, user := range users {
-		uuid := user.LoginGovUUID.String()
-		identity, err := models.FetchUserIdentity(h.db, uuid)
-		if err != nil {
-			h.logger.Error("Could not get user identity", zap.String("userID", uuid), zap.Error(err))
-			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-			return
-		}
-		identities = append(identities, identity)
+	// Grab the CSRF token from cookies set by the middleware
+	csrfCookie, err := auth.GetCookie(auth.MaskedGorillaCSRFToken, r)
+	if err != nil {
+		h.logger.Error("CSRF Cookie was not set via middleware")
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
 	}
+	csrfToken := csrfCookie.Value
 
 	t := template.Must(template.New("users").Parse(`
 		<h1>Select an existing user</h1>
 		{{range .}}
 			<form method="post" action="/devlocal-auth/login">
 				<p id="{{.ID}}">
-					<input type="hidden" name="gorilla.csrf.Token" value="` + csrf.Token(r) + `">
+					<input type="hidden" name="gorilla.csrf.Token" value="` + csrfToken + `">
 					{{.Email}}
 					({{if .DpsUserID}}dps{{else if .TspUserID}}tsp{{else if .OfficeUserID}}office{{else}}milmove{{end}})
-					<button name="id" value="{{.ID}}" data-hook="existing-user-login">Login</button>
+					<input type="hidden" name="id" value="{{.ID}}" />
+					<button type="submit" value="{{.ID}}" data-hook="existing-user-login">Login</button>
 				</p>
 			</form>
 		{{else}}
@@ -84,7 +76,7 @@ func (h UserListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		<h1>Create a new user</h1>
 		<form method="post" action="/devlocal-auth/new">
 			<p>
-				<input type="hidden" name="gorilla.csrf.Token" value="` + csrf.Token(r) + `">
+				<input type="hidden" name="gorilla.csrf.Token" value="` + csrfToken + `">
 				<button type="submit" data-hook="new-user-login">Login as New User</button>
 			</p>
 		</form>
@@ -101,18 +93,20 @@ type devlocalAuthHandler struct {
 	db                  *pop.Connection
 	clientAuthSecretKey string
 	noSessionTimeout    bool
+	useSecureCookie     bool
 }
 
 // AssignUserHandler logs a user in directly
 type AssignUserHandler devlocalAuthHandler
 
 // NewAssignUserHandler creates a new AssignUserHandler
-func NewAssignUserHandler(ac Context, db *pop.Connection, clientAuthSecretKey string, noSessionTimeout bool) AssignUserHandler {
+func NewAssignUserHandler(ac Context, db *pop.Connection, clientAuthSecretKey string, noSessionTimeout bool, useSecureCookie bool) AssignUserHandler {
 	handler := AssignUserHandler{
 		Context:             ac,
 		db:                  db,
 		clientAuthSecretKey: clientAuthSecretKey,
 		noSessionTimeout:    noSessionTimeout,
+		useSecureCookie:     useSecureCookie,
 	}
 	return handler
 }
@@ -146,12 +140,13 @@ func (h AssignUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type CreateUserHandler devlocalAuthHandler
 
 // NewCreateUserHandler creates a new CreateUserHandler
-func NewCreateUserHandler(ac Context, db *pop.Connection, clientAuthSecretKey string, noSessionTimeout bool) CreateUserHandler {
+func NewCreateUserHandler(ac Context, db *pop.Connection, clientAuthSecretKey string, noSessionTimeout bool, useSecureCookie bool) CreateUserHandler {
 	handler := CreateUserHandler{
 		Context:             ac,
 		db:                  db,
 		clientAuthSecretKey: clientAuthSecretKey,
 		noSessionTimeout:    noSessionTimeout,
+		useSecureCookie:     useSecureCookie,
 	}
 	return handler
 }
@@ -174,12 +169,13 @@ func (h CreateUserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 type CreateAndLoginUserHandler devlocalAuthHandler
 
 // NewCreateAndLoginUserHandler creates a new CreateAndLoginUserHandler
-func NewCreateAndLoginUserHandler(ac Context, db *pop.Connection, clientAuthSecretKey string, noSessionTimeout bool) CreateAndLoginUserHandler {
+func NewCreateAndLoginUserHandler(ac Context, db *pop.Connection, clientAuthSecretKey string, noSessionTimeout bool, useSecureCookie bool) CreateAndLoginUserHandler {
 	handler := CreateAndLoginUserHandler{
 		Context:             ac,
 		db:                  db,
 		clientAuthSecretKey: clientAuthSecretKey,
 		noSessionTimeout:    noSessionTimeout,
+		useSecureCookie:     useSecureCookie,
 	}
 	return handler
 }
@@ -241,6 +237,7 @@ func createSession(h devlocalAuthHandler, user *models.User, w http.ResponseWrit
 	session.IDToken = "devlocal"
 	session.UserID = userIdentity.ID
 	session.Email = userIdentity.Email
+	session.Disabled = userIdentity.Disabled
 
 	if userIdentity.ServiceMemberID != nil {
 		session.ServiceMemberID = *(userIdentity.ServiceMemberID)
@@ -264,7 +261,7 @@ func createSession(h devlocalAuthHandler, user *models.User, w http.ResponseWrit
 
 	// Writing out the session cookie logs in the user
 	h.logger.Info("logged in", zap.Any("session", session))
-	auth.WriteSessionCookie(w, session, h.clientAuthSecretKey, h.noSessionTimeout, h.logger)
+	auth.WriteSessionCookie(w, session, h.clientAuthSecretKey, h.noSessionTimeout, h.logger, h.useSecureCookie)
 
 	return session, nil
 }
@@ -296,6 +293,13 @@ func loginUser(h devlocalAuthHandler, user *models.User, w http.ResponseWriter, 
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return nil
 	}
+
+	if session.Disabled {
+		h.logger.Info("Disabled user requesting authentication", zap.Error(err), zap.String("email", session.Email))
+		http.Error(w, http.StatusText(403), http.StatusForbidden)
+		return nil
+	}
+
 	err = verifySessionWithApp(session)
 	if err != nil {
 		h.logger.Error("User unauthorized", zap.Error(err))
