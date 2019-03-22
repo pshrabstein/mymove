@@ -33,7 +33,12 @@ const MaskedGorillaCSRFToken = "masked_gorilla_csrf"
 
 // SessionExpiryInMinutes is the number of minutes before a fallow session is harvested
 const SessionExpiryInMinutes = 15
-const sessionExpiryInSeconds = 15 * 60
+const sessionExpiryInSeconds = SessionExpiryInMinutes * 60
+
+const cSRFExpiryInHours = 12
+
+// CSRFExpiryInSeconds is the number of seconds before CSRF tokens expire
+const CSRFExpiryInSeconds = cSRFExpiryInHours * 60 * 60
 
 // A representable date far in the future.  The trouble with something like https://stackoverflow.com/a/32620397
 // is that it produces a date which may not marshall well into JSON which makes logging problematic
@@ -114,7 +119,7 @@ func sessionClaimsFromRequest(logger Logger, secret string, appName Application,
 func WriteMaskedCSRFCookie(w http.ResponseWriter, csrfToken string, noSessionTimeout bool, logger Logger, useSecureCookie bool) {
 
 	expiry := GetExpiryTimeFromMinutes(SessionExpiryInMinutes)
-	maxAge := sessionExpiryInSeconds
+	maxAge := CSRFExpiryInSeconds
 	// Never expire token if in development
 	if noSessionTimeout {
 		expiry = likeForever

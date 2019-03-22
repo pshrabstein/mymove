@@ -1193,7 +1193,7 @@ func main() {
 		logger.Fatal("Failed to decode csrf auth key", zap.Error(err))
 	}
 	logger.Info("Enabling CSRF protection")
-	root.Use(csrf.Protect(csrfAuthKey, csrf.Secure(!isDevOrTest), csrf.Path("/")))
+	root.Use(csrf.Protect(csrfAuthKey, csrf.Secure(!isDevOrTest), csrf.Path("/"), csrf.MaxAge(auth.CSRFExpiryInSeconds)))
 	root.Use(maskedCSRFMiddleware)
 
 	// Sends build variables to honeycomb
