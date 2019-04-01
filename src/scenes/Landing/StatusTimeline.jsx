@@ -13,7 +13,8 @@ class PPM {
       { name: 'Submitted', code: 'SUBMITTED', dates: null },
       { name: 'Approved', code: 'PPM_APPROVED', dates: null },
       { name: 'In progress', code: 'IN_PROGRESS', dates: null },
-      { name: 'Completed', code: 'COMPLETED', dates: null },
+      { name: 'Payment requested', code: 'PAYMENT_REQUESTED', dates: null },
+      { name: 'Payment approved', code: 'PAYMENT_APPROVED', dates: null },
     ];
     this.markedStatuses = this.determineStatuses();
   }
@@ -34,10 +35,14 @@ class PPM {
       return markedStatuses;
     }
 
-    if (this.ppm.status === 'COMPLETED') {
-      markedStatuses.push('IN_PROGRESS');
-      markedStatuses.push('COMPLETED');
+    markedStatuses.push('IN_PROGRESS');
+    markedStatuses.push('PAYMENT_REQUESTED');
+
+    if (this.ppm.status === 'PAYMENT_REQUESTED') {
+      return markedStatuses;
     }
+
+    markedStatuses.push('COMPLETED');
 
     return markedStatuses;
   }
