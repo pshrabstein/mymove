@@ -1,10 +1,19 @@
+.ppm-payment-req-intro .title {
+  font-size: 2.2rem;
+  font-family: sans-serif;
+}
+
+.ppm-payment-req-intro a:visited {
+  color: #0071bc; /* original link color */
+}
+
 .ppm-payment-request-footer {
   display: flex;
   justify-content: space-between;
 }
 
 @media only screen and (max-width: 481px) {
-  ..ppm-payment-request-footer {
+  .ppm-payment-request-footer {
     flex-direction: column;
   }
 }
